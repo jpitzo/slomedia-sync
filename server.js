@@ -15,8 +15,21 @@ server.listen(3001, function () {
   console.log('Sync server is listening on port 3001!');
 })
 
+// Socket management
+var sockets = {};
+
 io.on('connection', function(socket){
-    // Setup powermate
-    socket.emit('someone else connected');
-    console.log('someone connected!');
-})
+    sockets[socket.id] = socket;
+});
+
+wProc.on('message', function(msg){
+    Object.keys(sockets).forEach(function(key) {
+    if (sockets[key].connected) {
+        sockets[key].emit(msg.action, msg.data);
+    }
+    else{
+        // Remove socket
+        delete sockets[key];
+    }
+  });
+});
