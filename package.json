@@ -3,6 +3,7 @@
   "main": "server.js",
   "dependencies": {
     "express": "^4.13.3",
-    "socket.io": "*"
+    "socket.io": "*",
+    "node-hid": "*"
   }
 }
