@@ -6,6 +6,8 @@ var events = require('events');
 var _ = require('underscore');
 
 var allDevices;
+var currDevice = null;
+var busy = false;
 
 SUPPORTED_DEVICES = [
     [1917,1040]
@@ -31,11 +33,11 @@ function Device(process)
     console.log(hids);
 
     // This can't be called twice or the second call will wonk out
-    if (currdevice === null) {
-        currdevice = new HID.HID(hids[0].path);
+    if (currDevice === null) {
+        currDevice = new HID.HID(hids[0].path);
     }
 
-    this.hid = currdevice;
+    this.hid = currDevice;
     this.position = 0;
     this.button = 0;
     this.hid.read(this.interpretData.bind(this));
@@ -47,25 +49,23 @@ Device.prototype.interpretData = function(error, data) {
     var keypress;
 
     // Data will come as buffer object
-    if(data){
-        data = buffer.toJSON()['data'];
+    if(data && busy === false){
+        data = data.toJSON()['data'];
 
         // Very basic check to see if the device gave us anything non zero. Keyups are registered as 0x00.
         // Should use something like hidstream if we wanted to get more clever
         keypress = _.reduce(data, function(memo, num){ return num !== 0 || memo}, false);
+
+        if(keypress === true){
+            busy = true;
+            this.process.send({ action: 'keypress', data: {keypress: true} });
+            setTimeout(function(){
+                busy = false;
+            }, 5000);
+        }
     }
 
-    console.log(data);
-
-    if(keypress === true){
-        this.process.send({ action: 'keypress', data: {keypress: true});
-        setTimeout(function(){
-            this.hid.read(this.interpretData.bind(this));
-        }, 5000);
-    }
-    else{
-        this.hid.read(this.interpretData.bind(this));
-    }
+    this.hid.read(this.interpretData.bind(this));
 }
 
 exports.Device = Device;
