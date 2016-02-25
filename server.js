@@ -23,6 +23,12 @@ io.on('connection', function(socket){
 });
 
 wProc.on('message', function(msg){
+    // Check if it died
+    if (msg.action === 'dead') {
+      console.log('child died!!!');
+      process.exit(1);
+    }
+
     Object.keys(sockets).forEach(function(key) {
     if (sockets[key].connected) {
         sockets[key].emit(msg.action, msg.data);
