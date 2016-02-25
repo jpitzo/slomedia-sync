@@ -9,16 +9,12 @@ var allDevices;
 var currDevice = null;
 var busy = false;
 
-SUPPORTED_DEVICES = [
-    [1917,1040]
-];
-
 var linkedDevices = {};
 
 function getAllDevices()
 {
     if (!allDevices) {
-	allDevices = HID.devices();
+	allDevices = HID.devices(5824,1159);
     }
     return allDevices;
 }
